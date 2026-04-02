@@ -14,7 +14,16 @@ router.post(
   recordController.createRecord
 );
 
-// 🔹 GET (Analyst + Admin)
+/**
+ * @swagger
+ * /records:
+ *   get:
+ *     summary: Get all records
+ *     description: Fetch paginated financial records
+ *     responses:
+ *       200:
+ *         description: List of records
+ */
 router.get(
   "/",
   authMiddleware,
