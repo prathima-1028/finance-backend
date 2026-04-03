@@ -1,18 +1,16 @@
-const sqlite3 = require("sqlite3").verbose();
+const Database = require("better-sqlite3");
 
-// Create database file
-const db = new sqlite3.Database("./finance.db", (err) => {
-  if (err) {
-    console.error("Error:", err.message);
-  } else {
-    console.log("Connected to SQLite database ✅");
-  }
+// Create / connect database
+const db = new Database("finance.db", {
+  verbose: console.log, // optional (shows queries)
 });
 
+console.log("Connected to SQLite database ✅");
+
 // Create tables
-db.serialize(() => {
+try {
   // Users table
-  db.run(`
+  db.prepare(`
     CREATE TABLE IF NOT EXISTS users (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       name TEXT,
@@ -21,10 +19,10 @@ db.serialize(() => {
       role TEXT,
       status TEXT
     )
-  `);
+  `).run();
 
   // Records table
-  db.run(`
+  db.prepare(`
     CREATE TABLE IF NOT EXISTS records (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       amount REAL,
@@ -35,7 +33,12 @@ db.serialize(() => {
       created_by INTEGER,
       is_deleted INTEGER DEFAULT 0
     )
-  `);
-});
+  `).run();
+
+  console.log("Tables initialized ✅");
+
+} catch (error) {
+  console.error("DB Error:", error.message);
+}
 
 module.exports = db;

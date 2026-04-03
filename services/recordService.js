@@ -1,112 +1,73 @@
-const recordModel = require("../models/recordModel");
+const db = require("../db");
 
 // 🔹 CREATE RECORD
-const addRecord = (data, user) => {
-  return new Promise((resolve, reject) => {
-    const { amount, type, category, date, note } = data;
+const addRecord = (data, userId) => {
+  const { amount, type, category, date, note } = data;
 
-    if (!amount || !type) {
-      return reject(new Error("Amount and type are required"));
-    }
+  const query = `
+    INSERT INTO records (amount, type, category, date, note, created_by)
+    VALUES (?, ?, ?, ?, ?, ?)
+  `;
 
-    if (!["income", "expense"].includes(type)) {
-      return reject(new Error("Type must be 'income' or 'expense'"));
-    }
+  const result = db
+    .prepare(query)
+    .run(amount, type, category, date, note, userId);
 
-    if (amount <= 0) {
-      return reject(new Error("Amount must be greater than 0"));
-    }
-
-    const recordData = {
-      amount,
-      type,
-      category,
-      date,
-      note,
-      created_by: user.id,
-    };
-
-    recordModel.createRecord(recordData, (err, id) => {
-      if (err) return reject(err);
-
-      resolve({
-        message: "Record created successfully",
-        recordId: id,
-      });
-    });
-  });
+  return result.lastInsertRowid;
 };
 
 // 🔹 GET RECORDS WITH PAGINATION + FILTER
-const fetchRecords = (filters) => {
-  return new Promise((resolve, reject) => {
-    let { page = 1, limit = 5, type, category } = filters;
+const getRecords = (filters, page = 1, limit = 10) => {
+  let query = `SELECT * FROM records WHERE is_deleted = 0`;
+  const params = [];
 
-    page = parseInt(page);
-    limit = parseInt(limit);
+  if (filters.type) {
+    query += ` AND type = ?`;
+    params.push(filters.type);
+  }
 
-    const offset = (page - 1) * limit;
+  if (filters.category) {
+    query += ` AND category = ?`;
+    params.push(filters.category);
+  }
 
-    let baseQuery = `FROM records WHERE is_deleted = 0`;
-    let params = [];
+  if (filters.startDate && filters.endDate) {
+    query += ` AND date BETWEEN ? AND ?`;
+    params.push(filters.startDate, filters.endDate);
+  }
 
-    // 🔹 Filters
-    if (type) {
-      baseQuery += ` AND type = ?`;
-      params.push(type);
-    }
+  // Pagination
+  const offset = (page - 1) * limit;
+  query += ` LIMIT ? OFFSET ?`;
+  params.push(limit, offset);
 
-    if (category) {
-      baseQuery += ` AND category = ?`;
-      params.push(category);
-    }
+  const data = db.prepare(query).all(...params);
 
-    const dataQuery = `SELECT * ${baseQuery} LIMIT ? OFFSET ?`;
-    const countQuery = `SELECT COUNT(*) as total ${baseQuery}`;
+  // Total count
+  const countQuery = `SELECT COUNT(*) as total FROM records WHERE is_deleted = 0`;
+  const totalResult = db.prepare(countQuery).get();
+  const total = totalResult.total;
 
-    // 🔹 Fetch records
-    recordModel.getRecordsWithPagination(
-      dataQuery,
-      [...params, limit, offset],
-      (err, rows) => {
-        if (err) return reject(err);
-
-        // 🔹 Fetch total count
-        recordModel.getCount(countQuery, params, (err, countResult) => {
-          if (err) return reject(err);
-
-          const total = countResult.total;
-
-          resolve({
-            page,
-            limit,
-            total,
-            totalPages: Math.ceil(total / limit),
-            data: rows,
-          });
-        });
-      }
-    );
-  });
+  return {
+    page,
+    limit,
+    total,
+    totalPages: Math.ceil(total / limit),
+    data,
+  };
 };
 
-// 🔹 DELETE RECORD
-const removeRecord = (id) => {
-  return new Promise((resolve, reject) => {
-    if (!id) return reject(new Error("Record ID is required"));
+// 🔹 DELETE (SOFT DELETE)
+const deleteRecord = (id) => {
+  const query = `UPDATE records SET is_deleted = 1 WHERE id = ?`;
 
-    recordModel.deleteRecord(id, (err) => {
-      if (err) return reject(err);
+  const result = db.prepare(query).run(id);
 
-      resolve({
-        message: "Record deleted (soft delete)",
-      });
-    });
-  });
+  return result.changes; // number of rows affected
 };
 
 module.exports = {
   addRecord,
-  fetchRecords,
-  removeRecord,
+  getRecords,
+  deleteRecord,
 };

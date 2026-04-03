@@ -1,55 +1,35 @@
 const db = require("../db");
-const bcrypt = require("bcryptjs");
+const bcrypt = require("bcrypt");
 
 // 🔹 CREATE USER
-const createUser = async ({ name, email, password, role }) => {
-  return new Promise(async (resolve, reject) => {
-    if (!name || !email || !password || !role) {
-      return reject(new Error("All fields are required"));
-    }
+const createUser = async (name, email, password, role) => {
+  const hashedPassword = await bcrypt.hash(password, 10);
 
-    const hashedPassword = await bcrypt.hash(password, 10);
+  const query = `
+    INSERT INTO users (name, email, password, role, status)
+    VALUES (?, ?, ?, ?, ?)
+  `;
 
-    const query = `
-      INSERT INTO users (name, email, password, role, status)
-      VALUES (?, ?, ?, ?, 'active')
-    `;
+  const result = db
+    .prepare(query)
+    .run(name, email, hashedPassword, role, "active");
 
-    db.run(query, [name, email, hashedPassword, role], function (err) {
-      if (err) return reject(err);
-
-      resolve({
-        message: "User created successfully",
-        userId: this.lastID,
-      });
-    });
-  });
+  return result.lastInsertRowid;
 };
 
-// 🔹 GET ALL USERS (Admin)
-const getUsers = () => {
-  return new Promise((resolve, reject) => {
-    db.all("SELECT id, name, email, role, status FROM users", [], (err, rows) => {
-      if (err) reject(err);
-      else resolve(rows);
-    });
-  });
+// 🔹 FIND USER BY EMAIL
+const findUserByEmail = (email) => {
+  return db.prepare("SELECT * FROM users WHERE email = ?").get(email);
 };
 
 // 🔹 UPDATE USER STATUS
 const updateUserStatus = (id, status) => {
-  return new Promise((resolve, reject) => {
-    const query = `UPDATE users SET status = ? WHERE id = ?`;
-
-    db.run(query, [status, id], function (err) {
-      if (err) reject(err);
-      else resolve({ message: "User status updated" });
-    });
-  });
+  const query = `UPDATE users SET status = ? WHERE id = ?`;
+  return db.prepare(query).run(status, id);
 };
 
 module.exports = {
   createUser,
-  getUsers,
+  findUserByEmail,
   updateUserStatus,
 };

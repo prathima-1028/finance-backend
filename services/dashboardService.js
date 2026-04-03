@@ -1,53 +1,37 @@
-const db = require("../db"); // ✅ correct path
+const db = require("../db");
 
-// 🔹 SUMMARY: Total Income, Expense, Net Balance
+// 🔹 SUMMARY (income, expense, balance)
 const getSummary = () => {
-  return new Promise((resolve, reject) => {
-    const query = `
-      SELECT 
-        SUM(CASE WHEN type='income' THEN amount ELSE 0 END) AS totalIncome,
-        SUM(CASE WHEN type='expense' THEN amount ELSE 0 END) AS totalExpense
-      FROM records
-      WHERE is_deleted = 0
-    `;
+  const query = `
+    SELECT 
+      SUM(CASE WHEN type='income' THEN amount ELSE 0 END) as totalIncome,
+      SUM(CASE WHEN type='expense' THEN amount ELSE 0 END) as totalExpense
+    FROM records
+    WHERE is_deleted = 0
+  `;
 
-    db.get(query, [], (err, row) => {
-      if (err) {
-        return reject(err);
-      }
+  const row = db.prepare(query).get();
 
-      // ✅ Safe handling if no data exists
-      const totalIncome = row?.totalIncome || 0;
-      const totalExpense = row?.totalExpense || 0;
+  const totalIncome = row.totalIncome || 0;
+  const totalExpense = row.totalExpense || 0;
 
-      resolve({
-        totalIncome,
-        totalExpense,
-        netBalance: totalIncome - totalExpense,
-      });
-    });
-  });
+  return {
+    totalIncome,
+    totalExpense,
+    netBalance: totalIncome - totalExpense,
+  };
 };
 
-// 🔹 CATEGORY-WISE TOTALS
+// 🔹 CATEGORY TOTALS
 const getCategoryTotals = () => {
-  return new Promise((resolve, reject) => {
-    const query = `
-      SELECT category, SUM(amount) AS total
-      FROM records
-      WHERE is_deleted = 0
-      GROUP BY category
-    `;
+  const query = `
+    SELECT category, SUM(amount) as total
+    FROM records
+    WHERE is_deleted = 0
+    GROUP BY category
+  `;
 
-    db.all(query, [], (err, rows) => {
-      if (err) {
-        return reject(err);
-      }
-
-      // ✅ Safe fallback
-      resolve(rows || []);
-    });
-  });
+  return db.prepare(query).all();
 };
 
 module.exports = {
