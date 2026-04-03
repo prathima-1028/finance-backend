@@ -1,152 +1,95 @@
-# 💰 Finance Data Processing & Access Control Backend
+# Finance Data Processing & Access Control Backend
 
-### 🚀 Engineering Assessment – Zorvyn FinTech
-
-A high-performance, security-first backend system designed for financial data orchestration.
-This project goes beyond basic CRUD by implementing **enterprise-grade Role-Based Access Control (RBAC)** and **optimized data aggregation for real-time financial insights**.
+🚀 **Engineering Assessment – Zorvyn FinTech**  
+High-performance, secure backend for financial data orchestration. Implements **Role-Based Access Control (RBAC)** and optimized financial aggregations.
 
 ---
 
-## 🏗️ System Architecture: Service Layer Pattern
-
-The system follows a clean, decoupled layered architecture:
-
-```text
-Request → Routing → Middleware (Auth/RBAC) → Controllers → Services → Models → Database
-```
-
-### 🧠 Why this Architecture?
-
-* **Testability** → Business logic in Services can be tested independently
-* **Maintainability** → Database changes affect only the Models layer
-* **Security** → Centralized middleware prevents unauthorized access
+## Live Demo / API Docs
+- **Deployed API:** [https://finance-backend.onrender.com](https://finance-backend.onrender.com)  
+- **Swagger Documentation:** [https://finance-backend.onrender.com/api-docs](https://finance-backend.onrender.com/api-docs)  
 
 ---
 
-## 🔐 Security & Access Control Matrix
-
-The system uses **JWT-based stateless authentication** with role-driven authorization.
-
-| Feature                 | Viewer | Analyst | Admin |
-| ----------------------- | ------ | ------- | ----- |
-| Dashboard Summary       | ✅      | ✅       | ✅     |
-| View Records            | ❌      | ✅       | ✅     |
-| Filter Records          | ❌      | ✅       | ✅     |
-| Create / Delete Records | ❌      | ❌       | ✅     |
-| User Management         | ❌      | ❌       | ✅     |
-
-👉 Access control is enforced at middleware level for consistency and security.
+## Features
+- ✅ User and Role Management (Admin, Analyst, Viewer)  
+- ✅ Financial Records CRUD  
+- ✅ Record Filtering by Date, Category, Type  
+- ✅ Dashboard Summary APIs (Income, Expense, Balance)  
+- ✅ Role-Based Access Control (RBAC)  
+- ✅ Input Validation and Error Handling  
+- ✅ Data Persistence with SQLite  
+- ⚡ Soft deletes for auditability (`is_deleted` flag)  
+- ⚡ SQL-level aggregations for performance  
 
 ---
 
-## 🛠️ Advanced Engineering Highlights
+## System Architecture
 
-### ⚡ Optimized Financial Aggregations
+**Service Layer Pattern:**  
+Sequest → Routing → Middleware (Auth/RBAC) → Controllers → Services → Models → Database
 
-* Uses **SQL-level aggregation (SUM, GROUP BY)** instead of JavaScript loops
-* Reduces memory usage and improves performance
+**Why this architecture?**  
+- Testability: Business logic isolated in Services.  
+- Maintainability: Database changes impact only Models.  
+- Security: Centralized middleware ensures consistent authorization.  
 
----
+**Access Control Matrix:**
 
-### 📄 Scalable Pagination & Filtering
-
-* Implemented **LIMIT & OFFSET pagination**
-* Supports dynamic filtering:
-
-  * Category
-  * Type (Income / Expense)
-  * Date
-
-👉 Prevents performance issues as data scales
-
----
-
-### 🧹 Audit-Ready Soft Deletes
-
-* Uses `is_deleted` flag instead of permanent deletion
-* Ensures **data recovery and audit trail support**
+| Feature | Viewer | Analyst | Admin |
+|---------|-------|--------|-------|
+| Dashboard Summary | ✅ | ✅ | ✅ |
+| View Records | ❌ | ✅ | ✅ |
+| Filter Records | ❌ | ✅ | ✅ |
+| Create / Delete Records | ❌ | ❌ | ✅ |
+| User Management | ❌ | ❌ | ✅ |
 
 ---
 
-### 🔒 Identity & Data Integrity
-
-* Password hashing using **bcrypt (salt rounds: 10)**
-* JWT for secure authentication
-* Input validation for:
-
-  * Amount (numeric)
-  * Date (ISO format)
-
----
-
-## 🧪 Core API Specification
-
-| Method | Endpoint           | Access   | Description                                  |
-| ------ | ------------------ | -------- | -------------------------------------------- |
-| POST   | /auth/login        | Public   | Generate JWT token                           |
-| GET    | /dashboard/summary | All      | Financial summary (income, expense, balance) |
-| GET    | /records           | Analyst+ | Paginated & filtered records                 |
-| POST   | /records           | Admin    | Create financial record                      |
-| PATCH  | /users/:id         | Admin    | Update user status                           |
+## Tech Stack
+- **Runtime:** Node.js  
+- **Framework:** Express.js  
+- **Database:** SQLite (better-sqlite3)  
+- **Authentication:** JWT  
+- **Security:** bcrypt (password hashing, salt rounds 10)  
+- **Architecture:** Service Layer Pattern  
+- **Deployment:** Render  
 
 ---
 
-## ⚙️ Tech Stack
-
-* **Runtime:** Node.js
-* **Framework:** Express.js
-* **Database:** SQLite
-* **Authentication:** JWT
-* **Security:** bcrypt
-* **Architecture:** Service Layer Pattern
-
----
-
-## ⚙️ Setup Instructions
+## Setup Instructions
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/finance-backend
+# Clone the repository
+git clone https://github.com/prathima-1028/finance-backend.git
 cd finance-backend
+
+# Install dependencies
 npm install
+
+# Start development server
 npx nodemon app.js
-```
+Environment Variables
 
----
+Create a .env file in the project root:
 
-## 🔑 Environment Variables
-
-Create a `.env` file:
-
-```env
 PORT=5000
 JWT_SECRET=your_secure_random_key
-```
+Technical Decisions & Trade-offs
+Node.js + Express: Scalable, modular, widely used.
+SQLite: Lightweight, easy to deploy.
+Service Layer Architecture: Clean separation of concerns.
+JWT Authentication: Stateless and secure.
+RBAC Enforcement in Middleware: Consistent authorization.
+Soft Deletes: Keeps audit trail and allows recovery.
+SQL-level Aggregation: Optimized dashboard queries.
+Trade-offs: SQLite over Postgres/MySQL for simplicity; future improvements include caching, rate-limiting, multi-tenant support.
+Future Enhancements
+Redis caching for dashboard APIs
+Rate limiting for API protection
+User-level data ownership for multi-tenant support
+API versioning for backward compatibility
+Advanced analytics and reporting
+Author
 
----
-
-## 📈 Future Scalability
-
-* Data ownership (user-level access control)
-* Rate limiting for API protection
-* Swagger/OpenAPI documentation
-* Redis caching for dashboard APIs
-* Deployment (AWS / Render)
-
----
-
-## 👩‍💻 Author
-
-**Prathima Koyilada**
-
----
-
-## ⭐ Final Note
-
-This project demonstrates **real-world backend engineering principles**, including:
-
-* Clean architecture design
-* Secure authentication & authorization
-* Efficient data processing
-* Scalable API development
-
-The focus was on building a backend that is not just functional, but **structured, secure, and production-ready in design**.
+Prathima Koyilada
