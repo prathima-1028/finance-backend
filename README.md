@@ -6,8 +6,8 @@ High-performance, secure backend for financial data orchestration. Implements **
 ---
 
 ## Live Demo / API Docs
-- **Deployed API:** [https://finance-backend.onrender.com](https://finance-backend.onrender.com)  
-- **Swagger Documentation:** [https://finance-backend.onrender.com/api-docs](https://finance-backend.onrender.com/api-docs)  
+- **Deployed API:** [https://finance-backend-5-vvp8.onrender.com/](https://finance-backend-5-vvp8.onrender.com/)  
+- **Swagger Documentation:** [https://finance-backend-5-vvp8.onrender.com/api-docs/](https://finance-backend-5-vvp8.onrender.com/api-docs/)  
 
 ---
 
